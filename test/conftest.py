@@ -3,7 +3,6 @@ import pytest
 from selenium import webdriver
 from api.BoardsApi import BoardApi
 from conficuration.configprovider import ConfigProvider
-from selenium.webdriver.firefox.service import Service as FirefoxService
 from testdata.DataProvider import DataProvider
 
 
@@ -12,10 +11,10 @@ def browser():
     """Инициализирует веб-драйвер браузера и закрывает его после завершения теста."""
     with allure.step("Открыть и настроить браузер"):
         timeout = ConfigProvider().getint("ui", "timeout")
-        browser_name = ConfigProvider().getint("ui", "browser_name")
+        browser_name = ConfigProvider().get("ui", "browser_name")
         browser = None
 
-        if browser_name == 'chrome':
+        if browser_name == "chrome":
             browser = webdriver.Chrome()
         else:
             browser = webdriver.Firefox()
@@ -26,32 +25,42 @@ def browser():
     with allure.step("Закрыть браузер"):
         browser.quit()
 
+
 @pytest.fixture
 def api_client() -> BoardApi:
     url = ConfigProvider().get("api", "base_url")
-    test_data = DataProvider().data  # Получаем словарь данных
-    return BoardApi(url, test_data)  # Передаем весь словарь как test_data
+    test_data = {
+        "api_key": DataProvider().get_api_key(),
+        "token": DataProvider().get_token(),
+        "org_id": DataProvider().get("org_id"),
+    }
+    return BoardApi(url, test_data)
 
-@pytest.fixture
-def api_client_no_auth() -> BoardApi:
-    url = ConfigProvider().get("api", "base_url")
-    return BoardApi(url , "", "")
-
-@pytest.fixture
-def dummy_board_id() -> str:
-    url = ConfigProvider().get("api", "base_url")
-    api = BoardApi(url , DataProvider().get_api_key(),  DataProvider().get_token())
-    res = api.create_board("Board to be deleted").get("id")
-    return res
-
-@pytest.fixture
-def delete_board() -> any:
-    dictionary = {"board_id": ""}
-    yield dictionary
-    url = ConfigProvider().get("api", "base_url")
-    api = BoardApi(url , DataProvider().get_api_key(),  DataProvider().get_token())
-    api.delete_board_by_id(dictionary.get("board_id"))
 
 @pytest.fixture
 def test_data():
-    return DataProvider()
+    """Фикстура для предоставления тестовых данных."""
+    return {
+        "api_key": DataProvider().get_api_key(),
+        "token": DataProvider().get_token(),
+        "org_id": DataProvider().get("org_id"),
+        "email": DataProvider().get("email"),
+        "password": DataProvider().get("password"),
+        "username": DataProvider().get("username"),
+    }
+
+
+@pytest.fixture
+def dummy_board_id(api_client: BoardApi) -> str:
+    """Создаёт временную доску для теста."""
+    res = api_client.create_board("Board to be deleted")
+    return res.get("id")
+
+
+@pytest.fixture
+def delete_board(api_client: BoardApi) -> dict:
+    """Удаляет доску после завершения теста."""
+    dictionary = {"board_id": ""}
+    yield dictionary
+    if dictionary.get("board_id"):
+        api_client.delete_board_by_id(dictionary.get("board_id"))

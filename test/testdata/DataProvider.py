@@ -1,7 +1,9 @@
 import json
+import os
 
-my_file = open('C:/Users/user/Desktop/skypro/final_proj/pytest_ui_api_template/test/testdata/test_data.json') #Метод вычитывает содержимое файла
-global_data = json.load(my_file)
+file_path = os.path.join(os.path.dirname(__file__), 'test_data.json')
+with open(file_path, encoding='utf-8') as my_file:
+    global_data = json.load(my_file)
 
 class DataProvider:
 

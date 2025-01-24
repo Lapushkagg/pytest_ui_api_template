@@ -5,10 +5,10 @@ from Ui.Authpage import AuthPage
 from conftest import browser 
 from Ui.MainPage import MainPage
 
-def test_auth(browser):	
-    email = "lapushkagg8@gmail.com"
-    password = "jdKZxUV4mFC6i*/"
-    username = "Елизавета Сигарева"
+def test_auth(browser, test_data:dict):	
+    email = test_data.get("email")
+    password = test_data.get("password")
+    username = test_data.get("username")
 
     auth_page = AuthPage(browser)
     auth_page.go()

@@ -2,14 +2,14 @@ import requests
 
 
 class BoardApi:
-    def __init__(self, base_url: str, api_key: str, token: str) -> None:
+    def __init__(self, base_url: str, test_data: dict) -> None:
         self.base_url = base_url
-        self.api_key = api_key
-        self.token = token
+        self.api_key = test_data.get("api_ke")
+        self.token = test_data.get("token")
 
-    def get_all_boards_by_org_id(self, org_id: str) -> dict:
+    def get_all_boards_by_org_id(self, test_data: dict) -> dict:
         """Получить список всех досок по ID организации."""
-        url = f"{self.base_url}/organizations/{org_id}"
+        url = f"{self.base_url}/organizations/{test_data.get("org_id")}"
         params = {
             "key": self.api_key,
             "token": self.token,

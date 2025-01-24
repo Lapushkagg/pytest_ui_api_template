@@ -4,6 +4,7 @@ from selenium import webdriver
 from api.BoardsApi import BoardApi
 from conficuration.configprovider import ConfigProvider
 from selenium.webdriver.firefox.service import Service as FirefoxService
+from testdata.DataProvider import DataProvider
 
 
 @pytest.fixture
@@ -28,7 +29,8 @@ def browser():
 @pytest.fixture
 def api_client() -> BoardApi:
     url = ConfigProvider().get("api", "base_url")
-    return BoardApi(url , "2b754d81683a294766e6c752246cf680", "ATTA364916e089dbf35c7e30cb320b6deaf3b554bedfdac8def9620ec7d41eed5b50969511C6")
+    test_data = DataProvider().data  # Получаем словарь данных
+    return BoardApi(url, test_data)  # Передаем весь словарь как test_data
 
 @pytest.fixture
 def api_client_no_auth() -> BoardApi:
@@ -38,7 +40,7 @@ def api_client_no_auth() -> BoardApi:
 @pytest.fixture
 def dummy_board_id() -> str:
     url = ConfigProvider().get("api", "base_url")
-    api = BoardApi(url , "2b754d81683a294766e6c752246cf680", "ATTA364916e089dbf35c7e30cb320b6deaf3b554bedfdac8def9620ec7d41eed5b50969511C6")
+    api = BoardApi(url , DataProvider().get_api_key(),  DataProvider().get_token())
     res = api.create_board("Board to be deleted").get("id")
     return res
 
@@ -47,5 +49,9 @@ def delete_board() -> any:
     dictionary = {"board_id": ""}
     yield dictionary
     url = ConfigProvider().get("api", "base_url")
-    api = BoardApi(url , "2b754d81683a294766e6c752246cf680", "ATTA364916e089dbf35c7e30cb320b6deaf3b554bedfdac8def9620ec7d41eed5b50969511C6")
+    api = BoardApi(url , DataProvider().get_api_key(),  DataProvider().get_token())
     api.delete_board_by_id(dictionary.get("board_id"))
+
+@pytest.fixture
+def test_data():
+    return DataProvider()
